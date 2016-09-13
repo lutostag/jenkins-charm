@@ -1,0 +1,4 @@
+name: jenkins-extension
+summary: Interface passing jenkins credentials to an external charm.
+version: 1
+maintainer: Free Ekanayaka <free.ekanayaka@canonical.com>

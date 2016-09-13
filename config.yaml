@@ -1,50 +1,76 @@
-options:
-  tools:
-    type: string
-    default: git gcc make bzr
-    description: Tooling to deploy alongside jenkins
-  release:
-    type: string
-    default: lts
-    description: |
-     Source of Jenkins, options include:
-     - lts: use the most recent Jenkins LTS release.
-     - trunk: use the most recent Jenkins release.
-     - bundle: use a bundled deb package. The jenkins deb package needs to be
-               manually copied over to the charm files/ dir before deployment
-               and named jenkins.deb. It can be downloaded from
-               http://pkg.jenkins-ci.org/debian/
-     - http(s)://...: http(s) link to a retrievable jenkins deb
-  username:
-    type: string
-    default: admin
-    description: Admin user username - used to manage
-      slave nodes so please don't change in Jenkins.
-  password:
-    type: string
-    default: ""
-    description: Admin user password - used to manage
-      slave nodes so please don't change in Jenkins.
-  plugins:
-    type: string
-    default: ""
-    description: Space separated list of plugins to install
-  plugins-site:
-    type: string
-    default: "https://updates.jenkins-ci.org/latest/"
-    description: Site to download plugin .hpi files from.
-  plugins-check-certificate:
-    type: string
-    default: "yes"
-    description: Set to no to allow downloading from an invalid https site.
-  remove-unlisted-plugins:
-    type: string
-    default: "no"
-    description: |
+"options":
+  "extra_packages":
+    "description": "Space separated list of extra deb packages to install.\n"
+    "type": "string"
+    "default": ""
+  "package_status":
+    "default": "install"
+    "type": "string"
+    "description": "The status of service-affecting packages will be set to this value\
+      \ in the dpkg database. Valid values are \"install\" and \"hold\".\n"
+  "install_sources":
+    "description": "List of extra apt sources, per charm-helpers standard format (a\
+      \ yaml list of strings encoded as a string). Each source may be either a line\
+      \ that can be added directly to sources.list(5), or in the form ppa:<user>/<ppa-name>\
+      \ for adding Personal Package Archives, or a distribution component to enable.\n"
+    "type": "string"
+    "default": ""
+  "install_keys":
+    "description": "List of signing keys for install_sources package sources, per\
+      \ charmhelpers standard format (a yaml list of strings encoded as a string).\
+      \ The keys should be the full ASCII armoured GPG public keys. While GPG key\
+      \ ids are also supported and looked up on a keyserver, operators should be aware\
+      \ that this mechanism is insecure. null can be used if a standard package signing\
+      \ key is used that will already be installed on the machine, and for PPA sources\
+      \ where the package signing key is securely retrieved from Launchpad.\n"
+    "type": "string"
+    "default": ""
+  "tools":
+    "type": "string"
+    "default": "git gcc make bzr"
+    "description": "Tooling to deploy alongside jenkins"
+  "release":
+    "type": "string"
+    "default": "lts"
+    "description": |
+      Source of Jenkins, options include:
+      - lts: use the most recent Jenkins LTS release.
+      - trunk: use the most recent Jenkins release.
+      - bundle: use a bundled deb package. The jenkins deb package needs to be
+                manually copied over to the charm files/ dir before deployment
+                and named jenkins.deb. It can be downloaded from
+                http://pkg.jenkins-ci.org/debian/
+      - http(s)://...: http(s) link to a retrievable jenkins deb
+  "username":
+    "type": "string"
+    "default": "admin"
+    "description": "Admin user username - used to manage slave nodes so please don't\
+      \ change in Jenkins."
+  "password":
+    "type": "string"
+    "default": ""
+    "description": "Admin user password - used to manage slave nodes so please don't\
+      \ change in Jenkins."
+  "plugins":
+    "type": "string"
+    "default": ""
+    "description": "Space separated list of plugins to install"
+  "plugins-site":
+    "type": "string"
+    "default": "https://updates.jenkins-ci.org/latest/"
+    "description": "Site to download plugin .hpi files from."
+  "plugins-check-certificate":
+    "type": "string"
+    "default": "yes"
+    "description": "Set to no to allow downloading from an invalid https site."
+  "remove-unlisted-plugins":
+    "type": "string"
+    "default": "no"
+    "description": |
       Set this to yes to remove any plugins not listed in plugins
       from the installation.
-  master-executors:
-    type: int
-    default: 1
-    description: |
+  "master-executors":
+    "type": "int"
+    "default": !!int "1"
+    "description": |
       Number of executors to configure for jenkins master.

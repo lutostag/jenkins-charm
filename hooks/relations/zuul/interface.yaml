@@ -1,0 +1,4 @@
+name: zuul
+summary: Interface for relating a Jenkins master to Zuul.
+version: 1
+maintainer: Free Ekanayaka <free.ekanayaka@canonical.com>

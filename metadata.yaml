@@ -1,33 +1,29 @@
-name: jenkins
-summary: Jenkins Continuous Integration Server
-maintainer: Free Ekanayaka <free.ekanayaka@canonical.com>
-description: |
-  Jenkins is an extendable open source continuous
-  integration server that monitors executions of
-  repeated jobs. The focus of Jenkins is the 
-  building/testing of software project continuously, 
-  and monitoring executions of externally-run jobs.
-  More information at http://jenkins-ci.org/.
-  
-  This charm provides the Jenkins master service,
-  and when paired with the jenkins-slave charm 
-  provides an easy way to deploy Jenkins on Ubuntu
-  server, and scale out Jenkins slaves.
-tags:
-  - application_development
-  - ops
-subordinate: false
-provides:
-  website:
-    interface: http
-  extension:
-    interface: jenkins-extension
-    scope: container
-    optional: true
-requires:
-  master:
-    interface: jenkins-slave
-    optional: true
-  zuul:
-    interface: zuul
-    optional: true
+"name": "jenkins"
+"summary": "Jenkins Continuous Integration Server"
+"maintainer": "Free Ekanayaka <free.ekanayaka@canonical.com>"
+"description": "Jenkins is an extendable open source continuous\nintegration server\
+  \ that monitors executions of\nrepeated jobs. The focus of Jenkins is the \nbuilding/testing\
+  \ of software project continuously, \nand monitoring executions of externally-run\
+  \ jobs.\nMore information at http://jenkins-ci.org/.\n\nThis charm provides the\
+  \ Jenkins master service,\nand when paired with the jenkins-slave charm \nprovides\
+  \ an easy way to deploy Jenkins on Ubuntu\nserver, and scale out Jenkins slaves.\n"
+"series":
+- "xenial"
+"tags":
+- "application_development"
+- "ops"
+"requires":
+  "master":
+    "interface": "jenkins-slave"
+    "optional": !!bool "true"
+  "zuul":
+    "interface": "zuul"
+    "optional": !!bool "true"
+"provides":
+  "website":
+    "interface": "http"
+  "extension":
+    "interface": "jenkins-extension"
+    "scope": "container"
+    "optional": !!bool "true"
+"subordinate": !!bool "false"
