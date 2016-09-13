@@ -30,14 +30,13 @@ class Configuration(object):
         import pwd
         import grp
         uid = pwd.getpwnam('jenkins').pw_uid
-        gid = grp.getgrnam('jenkins').gr_gid
+        gid = grp.getgrnam('nogroup').gr_gid
         splash_version_ran = os.path.join(
             HOME, 'jenkins.install.InstallUtil.lastExecVersion')
         version_installed = os.path.join(
             HOME, 'jenkins.install.UpgradeWizard.state')
         if not os.path.lexists(splash_version_ran):
             host.symlink(version_installed, splash_version_ran)
-            os.fchown(splash_version_ran, uid, gid)
             os.fchown(splash_version_ran, uid, gid)
 
     def bootstrap(self):
