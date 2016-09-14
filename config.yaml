@@ -7,7 +7,7 @@
     "default": "install"
     "type": "string"
     "description": "The status of service-affecting packages will be set to this value\
-      \ in the dpkg database. Valid values are \"install\" and \"hold\".\n"
+      \ in the dpkg database. Valid values are \"install\" and \"hold\".\n fix"
   "install_sources":
     "description": "List of extra apt sources, per charm-helpers standard format (a\
       \ yaml list of strings encoded as a string). Each source may be either a line\
