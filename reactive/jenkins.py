@@ -9,6 +9,7 @@ from charmhelpers.core.host import (
 from charms.reactive import (
     hook,
     when,
+    when_any,
     when_not,
     only_once,
     set_state,
@@ -88,8 +89,8 @@ def configure_tools():
 
 # Called once we're bootstrapped and every time the configured user
 # changes.
-@when("jenkins.bootstrapped", "config.changed.username")
-@when("jenkins.bootstrapped", "config.changed.password")
+@when("jenkins.bootstrapped")
+@when_any("config.changed.username", "config.changed.password")
 def configure_admin():
     remove_state("jenkins.configured.admin")
     status_set("maintenance", "Configuring admin user")
