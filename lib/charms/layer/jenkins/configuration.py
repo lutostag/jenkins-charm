@@ -37,7 +37,7 @@ class Configuration(object):
             HOME, 'jenkins.install.UpgradeWizard.state')
         if not os.path.lexists(splash_version_ran):
             host.symlink(version_installed, splash_version_ran)
-            os.fchown(splash_version_ran, uid, gid)
+            os.chown(splash_version_ran, uid, gid, follow_symlinks=False)
 
     def bootstrap(self):
         """Generate Jenkins' config, if it hasn't done yet."""
