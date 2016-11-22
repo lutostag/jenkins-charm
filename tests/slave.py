@@ -1,12 +1,9 @@
-import json
-
-import requests
-
 from deployment import DeploymentTest
 from basic import BasicDeploymentSpec
 
 JENKINS_SLAVE = {
-    "trusty": "cs:~juju-qa/trusty/jenkins-slave-2"
+    "trusty": "cs:~juju-qa/trusty/jenkins-slave-2",
+    "xenial": "cs:~free.ekanayaka/xenial/jenkins-slave-2",
 }
 
 
@@ -25,10 +22,6 @@ class SlaveDeploymentTest(DeploymentTest):
 
     def test_00_slave_relation(self):
         """Validate that the slave is correctly registered."""
-        url = "%s/computer/api/json" % self.spec.jenkins_url()
-        response = requests.get(url)
-        data = json.loads(response.text)
-
-        node = self.spec.jenkins_slave.info["unit_name"].replace("/", "-")
-        self.assertEqual(
-            node, data["computer"][1]["displayName"], "Failed to locate slave")
+        client = self.spec.jenkins_client()
+        name = self.spec.jenkins_slave.info["unit_name"].replace("/", "-")
+        self.assertIn({"name": name, "offline": False}, client.get_nodes())

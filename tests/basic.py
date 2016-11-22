@@ -1,5 +1,7 @@
 import os
 
+from retrying import retry
+
 from jenkins import Jenkins
 
 from deployment import (
@@ -16,6 +18,10 @@ class BasicDeploymentSpec(DeploymentSpec):
     def jenkins_url(self):
         """Get the URL of the Jenkins master."""
         return "http://%s:8080/" % self.jenkins.info["public-address"]
+
+    def jenkins_client(self, password=PASSWORD):
+        """Return a client for the Jenkins server under test."""
+        return Jenkins(self.jenkins_url(), "admin", password)
 
     def plugin_dir_stat(self, plugin):
         """Get the file system stat of the directory of the given plugin."""
@@ -34,7 +40,7 @@ class BasicDeploymentSpec(DeploymentSpec):
     def _init_00_basic(self):
         self.jenkins_config = {
             "password": PASSWORD,
-            "tools": "python3-testtools",
+            "tools": "python-minimal python3-testtools",
             "plugins": "groovy",
         }
 
@@ -83,12 +89,12 @@ class BasicDeploymentTest(DeploymentTest):
 
     def test_00_user(self):
         """Validate admin user."""
-        client = Jenkins(self.spec.jenkins_url(), "admin", PASSWORD)
+        client = self.spec.jenkins_client()
         try:
-            version = client.get_version()
+            user = client.get_whoami()
         except:
             self.fail("Can't access Jenkins API")
-        self.assertTrue(version.startswith("1"), "Unexpected Jenkins version")
+        self.assertEqual("admin", user["id"], "Unexpected user ID")
 
     def test_00_plugins(self):
         """Validate that configured plugins are installed."""
@@ -109,14 +115,19 @@ class BasicDeploymentTest(DeploymentTest):
     def test_10_change_password(self):
         """Validate that after changing the password we can still login."""
         charm_name = self.spec.deployment.charm_name
+
         self.spec.deployment.configure(charm_name, {"password": "changed"})
         self.spec.deployment.sentry.wait()
-        client = Jenkins(self.spec.jenkins_url(), "admin", "changed")
+
+        client = self.spec.jenkins_client(password="changed")
         try:
-            version = client.get_version()
+            user = client.get_whoami()
         except:
             self.fail("Can't access Jenkins API")
-        self.assertTrue(version.startswith("1"), "Unexpected Jenkins version")
+        self.assertEqual("admin", user["id"], "Unexpected user ID")
+
+        self.spec.deployment.configure(charm_name, {"password": PASSWORD})
+        self.spec.deployment.sentry.wait()
 
     def test_10_change_plugins(self):
         """Validate that plugins get updated after a config change."""
@@ -124,7 +135,11 @@ class BasicDeploymentTest(DeploymentTest):
         charm_name = self.spec.deployment.charm_name
         self.spec.deployment.configure(charm_name, {"plugins": plugins})
         self.spec.deployment.sentry.wait()
-        self.spec.jenkins.run("/bin/sleep 1")  # Make sure we're done for real
-        plugins = self.spec.plugins_list()
-        self.assertIn("groovy", plugins, "Failed to locate groovy")
-        self.assertIn("greenballs", plugins, "Failed to locate greenballs")
+
+        @retry(stop_max_attempt_number=10, wait_fixed=1000)
+        def assert_plugins():
+            plugins = self.spec.plugins_list()
+            self.assertIn("groovy", plugins, "Failed to locate groovy")
+            self.assertIn("greenballs", plugins, "Failed to locate greenballs")
+
+        assert_plugins()

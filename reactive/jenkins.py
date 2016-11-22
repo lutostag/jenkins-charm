@@ -11,6 +11,7 @@ from charms.reactive import (
     when,
     when_any,
     when_not,
+    when_any,
     only_once,
     set_state,
     remove_state,
@@ -28,6 +29,7 @@ from charms.layer.jenkins.configuration import (
 from charms.layer.jenkins.users import Users
 from charms.layer.jenkins.plugins import Plugins
 from charms.layer.jenkins.api import Api
+from charms.layer.jenkins.service import Service
 
 DEPENDENCIES_EVENTS = ["apt.installed.%s" % dep for dep in APT_DEPENDENCIES]
 
@@ -71,6 +73,8 @@ def install_jenkins():
 @when("apt.installed.jenkins")
 def bootstrap_jenkins():
     status_set("maintenance", "Bootstrapping Jenkins configuration")
+    service = Service()
+    service.check_ready()
     configuration = Configuration()
     configuration.bootstrap()
     set_state("jenkins.bootstrapped")
@@ -96,6 +100,9 @@ def configure_admin():
     status_set("maintenance", "Configuring admin user")
     users = Users()
     users.configure_admin()
+    api = Api()
+    api.reload()
+    api.wait()  # Wait for the service to be fully up
     set_state("jenkins.configured.admin")
 
 

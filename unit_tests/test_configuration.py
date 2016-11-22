@@ -1,64 +1,44 @@
-from testtools.testcase import TestCase
-
-from fixtures import (
-    EnvironmentVariable,
-    TempDir,
+from testtools.matchers import (
+    FileContains,
+    FileExists,
+    Contains,
+    Not,
 )
 
-from stubs.hookenv import HookenvStub
-from stubs.templating import TemplatingStub
+from systemfixtures.matchers import HasOwnership
 
-from charms.layer.jenkins.configuration import (
-    CONFIG_FILE,
-    Configuration,
-)
+from charmtest import CharmTest
+
+from charms.layer.jenkins import paths
+from charms.layer.jenkins.configuration import Configuration
+
+from states import AptInstalledJenkins
 
 
-class ConfigurationTest(TestCase):
+class ConfigurationTest(CharmTest):
 
     def setUp(self):
         super(ConfigurationTest, self).setUp()
-        self.charm_dir = self.useFixture(TempDir())
-        self.useFixture(EnvironmentVariable("CHARM_DIR", self.charm_dir.path))
-        self.hookenv = HookenvStub(self.charm_dir.path)
-        self.templating = TemplatingStub()
-
-        self.configuration = Configuration(
-            hookenv=self.hookenv, templating=self.templating)
+        self.useFixture(AptInstalledJenkins(self.fakes))
+        self.configuration = Configuration()
 
     def test_bootstrap(self):
         """
         If it hasn't been done yet, the Jenkins configuration file gets
         generated.
         """
-        self.hookenv.config()["master-executors"] = 1
         self.configuration.bootstrap()
-        render = self.templating.renders[0]
-        self.assertEqual("jenkins-config.xml", render.source)
-        self.assertEqual(CONFIG_FILE, render.target)
-        self.assertEqual({"master_executors": 1}, render.context)
-        self.assertEqual("jenkins", render.owner)
-        self.assertEqual("nogroup", render.group)
-        self.assertEqual(8080, self.hookenv.port)
-
-    def test_bootstrap_once(self):
-        """
-        If it has already been generated, the Jenkins configuration will not
-        be touched again.
-        """
-        self.hookenv.config()["master-executors"] = 1
-        self.configuration.bootstrap()
-        self.templating.renders.pop()
-        self.configuration.bootstrap()
-        self.assertEqual([], self.templating.renders)
+        self.assertThat(paths.CONFIG_FILE, HasOwnership(123, 456))
+        self.assertThat(
+            paths.CONFIG_FILE,
+            FileContains(matcher=Contains("<numExecutors>1</numExecutors>")))
+        self.assertEqual({8080}, self.fakes.juju.ports["TCP"])
 
     def test_migrate(self):
         """
         The legacy bootstrap flag file gets migrated to a local state flag.
         """
-        jenkins_home = self.useFixture(TempDir())
-        self.configuration._legacy_bootstrap_flag = jenkins_home.join("flag")
-        with open(self.configuration._legacy_bootstrap_flag, "w"):
-            pass
+        with open(paths.LEGACY_BOOTSTRAP_FLAG, "w") as fd:
+            fd.write("")
         self.configuration.migrate()
-        self.assertTrue(self.hookenv.config()["_config-bootstrapped"])
+        self.assertThat(paths.LEGACY_BOOTSTRAP_FLAG, Not(FileExists()))

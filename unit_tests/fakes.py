@@ -1,14 +1,22 @@
 from collections import namedtuple
+from urllib.parse import urljoin
+
+from fixtures import (
+    Fixture,
+    MonkeyPatch,
+)
 
 Node = namedtuple("Node", ["host", "executors", "description", "labels"])
 
 
-class JenkinsStub(object):
-    """Testable stub for the Jenkins python client."""
+class FakeJenkins(Fixture):
+    """Testable fake for the Jenkins python client."""
 
-    def __init__(self):
+    def _setUp(self):
         self.nodes = []
         self.scripts = {}
+        self.responses = {}
+        self.useFixture(MonkeyPatch("jenkins.Jenkins", new_value=self))
 
     def __call__(self, url, username, password):
         self.url = url
@@ -35,3 +43,12 @@ class JenkinsStub(object):
 
     def run_script(self, script):
         return self.scripts[script]
+
+    def jenkins_open(self, request):
+        response = self.responses[request.full_url]
+        if isinstance(response, Exception):
+            raise response
+        return response
+
+    def _build_url(self, path):
+        return urljoin(self.url, path)
