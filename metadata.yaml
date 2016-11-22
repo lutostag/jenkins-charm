@@ -16,6 +16,8 @@ description: |
 tags:
   - application_development
   - ops
+series:
+  - xenial
 subordinate: false
 provides:
   website:
